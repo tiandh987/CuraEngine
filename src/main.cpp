@@ -37,6 +37,7 @@ namespace cura
 {
 
 // Signal handler for a "floating point exception", which can also be integer division by zero errors.
+// // “浮点异常”的信号处理程序，也可能是整数除以零错误。
 void signal_FPE(int n)
 {
     (void)n;
@@ -55,8 +56,11 @@ int main(int argc, char** argv)
 
 #ifndef DEBUG
     // Register the exception handling for arithmetic exceptions, this prevents the "something went wrong" dialog on windows to pop up on a division by zero.
+    // 注册 算术异常的异常处理，这可以防止窗口上的“出现错误”对话框在被零除时弹出。
     signal(SIGFPE, cura::signal_FPE);
 #endif
+
+    // 设置 std::cerr 流的输出格式，使其能够以布尔值的形式输出。
     std::cerr << std::boolalpha;
 
 

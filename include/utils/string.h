@@ -14,6 +14,8 @@ namespace cura
 {
 
 // c++11 no longer supplies a strcasecmp, so define our own version.
+// c++11 不再提供 strcasecmp，因此定义我们自己的版本。
+// 字符串比较
 static inline int stringcasecompare(const char* a, const char* b)
 {
     while (*a && *b)
