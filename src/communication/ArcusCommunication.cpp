@@ -375,8 +375,11 @@ bool ArcusCommunication::isSequential() const
     return false; // We don't necessarily need to send the start g-code before the rest. We can send it afterwards when we have more accurate print statistics.
 }
 
+// 这个函数是 ArcusCommunication 类中的成员函数，用来检查是否存在一个待处理的“切片”（slice）。
 bool ArcusCommunication::hasSlice() const
 {
+    // 这一行检查私有数据成员 private_data 中的 socket 对象的状态是否不是 Closed 和 Error。
+    // 如果连接处于打开状态或等待连接状态，就会返回 true；否则返回 false。
     return private_data->socket->getState() != Arcus::SocketState::Closed && private_data->socket->getState() != Arcus::SocketState::Error
         && private_data->slice_count < 1; // Only slice once per run of CuraEngine. See documentation of slice_count.
 }
@@ -519,12 +522,16 @@ void ArcusCommunication::setExtruderForSend(const ExtruderTrain& extruder)
     path_compiler->setExtruder(extruder);
 }
 
+// 负责处理接收到的切片消息并执行相应的操作。
 void ArcusCommunication::sliceNext()
 {
+    // 从 private_data 中的套接字 (socket) 中获取下一个消息，并将其存储在 message 中。
     const Arcus::MessagePtr message = private_data->socket->takeNextMessage();
 
     // Handle the main Slice message.
+    // 这里尝试将 message 转换为 cura::proto::Slice 类型的指针，以便处理切片消息。
     const cura::proto::Slice* slice_message = dynamic_cast<cura::proto::Slice*>(message.get()); // See if the message is of the message type Slice. Returns nullptr otherwise.
+    // 如果 slice_message 是空指针，则表示收到的消息不是切片消息，直接返回。
     if (! slice_message)
     {
         return;
@@ -558,13 +565,16 @@ void ArcusCommunication::sliceNext()
     }
 #endif // ENABLE_PLUGINS
 
+    // 创建 Slice 对象，并将其指针存储在 Application 类的 current_slice_ 成员变量中，以便其他地方可以访问当前切片的信息。
     Slice slice(slice_message->object_lists().size());
     Application::getInstance().current_slice_ = &slice;
 
+    // 读取切片消息中的全局设置和挤出机设置，并将其保存到私有数据成员中。
     private_data->readGlobalSettingsMessage(slice_message->global_settings());
     private_data->readExtruderSettingsMessage(slice_message->extruders());
 
     // Broadcast the settings to the plugins
+    // 将设置广播给插件，使得插件能够了解到最新的切片设置。
     slots::instance().broadcast<plugins::v0::SlotID::SETTINGS_BROADCAST>(*slice_message);
     const size_t extruder_count = slice.scene.extruders.size();
 
@@ -582,6 +592,7 @@ void ArcusCommunication::sliceNext()
     }
 
     // Load all mesh groups, meshes and their settings.
+      // 加载所有的网格组、网格及其设置，以便进行切片处理。
     private_data->object_count = 0;
     for (const cura::proto::ObjectList& mesh_group_message : slice_message->object_lists())
     {
@@ -589,6 +600,7 @@ void ArcusCommunication::sliceNext()
     }
     spdlog::debug("Done reading Slice message.");
 
+    // 如果存在网格组，则执行切片计算，并进行相应的后处理操作，如生成 GCode、发送打印时间和材料估算等。最后，将切片计数增加。
     if (! slice.scene.mesh_groups.empty())
     {
         slice.compute();
@@ -600,6 +612,7 @@ void ArcusCommunication::sliceNext()
         private_data->slice_count++;
     }
 
+    // 在下次检查是否有切片消息之前，暂停一段时间。
     std::this_thread::sleep_for(std::chrono::milliseconds(250)); // Pause before checking again for a slice message.
 }
 

@@ -19,6 +19,8 @@ class Settings;
  * \brief When slicing via the command line, interprets the command line
  * arguments to initiate a slice.
  */
+// 这段代码定义了一个名为 CommandLine 的类，它是 Communication 类的子类。
+// 这意味着 CommandLine 类将继承 Communication 类的所有成员和方法，并且可以扩展或修改它们。
 class CommandLine : public Communication
 {
 public:
@@ -27,6 +29,7 @@ public:
      * start a slice.
      * \param arguments The command line arguments passed to the application.
      */
+    // 创建一个通信器，它能够解析命令行参数，用于启动一个切片（slice）。
     CommandLine(const std::vector<std::string>& arguments);
 
     /*
@@ -160,11 +163,13 @@ private:
     /*
      * \brief The command line arguments that the application was called with.
      */
+    // 用于存储应用程序调用时传递的命令行参数。可以通过arguments_访问这些参数。
     std::vector<std::string> arguments_;
 
     /*
      * The last progress update that we output to stdcerr.
      */
+    // 用于存储上一次输出到 std::cerr 的进度更新
     unsigned int last_shown_progress_;
 
     /*

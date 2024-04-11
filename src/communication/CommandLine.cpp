@@ -34,12 +34,17 @@
 namespace cura
 {
 
+// 这是 CommandLine 类的构造函数的实现，使用了成员初始化列表来初始化成员变量 arguments_ 和 last_shown_progress_，
+// 并且在构造函数中根据环境变量初始化了 search_directories_。
 CommandLine::CommandLine(const std::vector<std::string>& arguments)
     : arguments_{ arguments }
     , last_shown_progress_{ 0 }
 {
+    // 通过调用 spdlog::details::os::getenv 来获取名为 "CURA_ENGINE_SEARCH_PATH" 的环境变量，并将其赋值给 search_paths。
     if (auto search_paths = spdlog::details::os::getenv("CURA_ENGINE_SEARCH_PATH"); ! search_paths.empty())
     {
+        // 如果环境变量不为空，这里将 search_paths 通过管道符号 | 传递给 views::split_paths，
+        // 然后使用范围库 (ranges) 中的 to 函数将其转换为 std::vector<std::filesystem::path> 类型，并将结果赋值给 search_directories_。
         search_directories_ = search_paths | views::split_paths | ranges::to<std::vector<std::filesystem::path>>();
     };
 }
